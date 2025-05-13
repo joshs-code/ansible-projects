@@ -1,0 +1,6 @@
+---
+- name: Apply webserver role
+  hosts: all
+  become: yes
+  roles:
+    - webserver

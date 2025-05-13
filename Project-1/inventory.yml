@@ -1,0 +1,10 @@
+all:
+  hosts:
+    rocky-server:
+      ansible_host: 192.168.12.101
+      ansible_user: root
+    ubuntu-server:
+      ansible_host: 192.168.12.103
+      ansible_user: root
+
+

@@ -1,0 +1,48 @@
+---
+- name: Configure webserver
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Web Server
+      package:
+        name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' }}"
+        state: present
+    - name: Start Web Server
+      service:
+        name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' }}"
+        state: started
+        enabled: yes
+    - name: Start and enable firewalld
+      when: ansible_os_family == "RedHat"
+      block:
+        - name: Enable HTTP Port Firewalld
+          ansible.posix.firewalld:
+            service: https
+            state: enabled
+            immediate: true
+    - name: Setup UFW for non ReadHat Systems
+      when: ansible_os_family != "RedHat"
+      block:
+        - name: Enable UFW
+          ufw:
+            state: enabled
+        - name: Allow SSH PORT ( Had trouble after enabling ufw )
+          ufw:
+            rule: allow
+            name: OpenSSH
+        - name: Allow HTTP in ufw
+          ufw:
+            rule: allow
+            port: 80
+            proto: tcp
+    - name: Deploy index.html
+      copy:
+        content: <h1>Welcome to {{ ansible_hostname }}</h1>
+        dest: /var/www/html/index.html
+        mode: "0644"
+    - name: Check Ubuntu Webserver Up
+      ansible.builtin.uri:
+        url: http://192.168.12.101
+    - name: Check Rocky Webserver Up
+      ansible.builtin.uri:
+        url: http://192.168.12.103
